@@ -39,8 +39,6 @@ result = pd.DataFrame({'Transac Adicionales': numpy_data[0], 'Valor Adicionales'
 # 4. Realice una gráfica donde se vea como se comportaron las ventas a través de los diferentes meses del año. Con la información resultante proponga opciones de mejora para los meses de peor desempeño.
 ventas_mes = df.groupby(['Mes']).agg('sum').sort_index(axis=0).drop(columns=['Usuario'])
 
-
-
 # Guardas en Excel con Pandas y openpyxl https://xlsxwriter.readthedocs.io/working_with_pandas.html
 # https://stackoverflow.com/questions/28142420/can-pandas-read-and-modify-a-single-excel-file-worksheet-tab-without-modifying
 
@@ -53,7 +51,6 @@ user1.to_excel(writer, sheet_name='Hoja1', startcol=3)
 worksheet = writer.sheets['Hoja1']
 worksheet.write(2, 0, text)
 detalle.to_excel(writer, sheet_name='Hoja1', startrow=4)
-
 
 # Punto 2
 mes.to_excel(writer, sheet_name='Hoja2')
@@ -79,7 +76,6 @@ writer.save()
 
 
 # openpyxl Second Method does work the Append
-
 writer = pd.ExcelWriter('informal-data.xlsx', engine='openpyxl', mode='a')
 user.to_excel(writer, sheet_name='Hoja1')
 user1.to_excel(writer, sheet_name='Hoja1', startcol=3)
@@ -100,6 +96,7 @@ result.to_excel(writer, sheet_name='Hoja3')
 # Punto 4 para el Chart https://openpyxl.readthedocs.io/en/stable/charts/bar.ht
 ventas_mes.to_excel(writer, sheet_name='Hoja4')
 writer.save()
+
 
 
 # It does work in safe mode also
