@@ -10,6 +10,8 @@ from sklearn.svm import SVC
 from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import plot_confusion_matrix
+from sklearn.preprocessing import OneHotEncoder
+
 
 
 df = pd.read_excel(io='dataset.xlsx', sheet_name='Dataset_', usecols='A:M')
@@ -31,7 +33,7 @@ df.head()
 labelecoder = preprocessing.LabelEncoder()
 df['mail'] = labelecoder.fit_transform(df['Dominio Correo'])
 df['chanel'] = labelecoder.fit_transform(df['Canal Adquisicion'])
-df['location'] = labelecoder.fit_transform(df['Canal Adquisicion'])
+df['location'] = labelecoder.fit_transform(df['Ubicación'])
 
 pd.Categorical(df[['Contacto Inicial', 'Reportes Descargados', 'Persona Juridica', 'Interes de Compra']])
 df.dtypes
@@ -51,6 +53,8 @@ clf = LogisticRegression(random_state=0)
 clf.fit(X_train, y_train)
 score= clf.score(X_test, y_test)
 score
+clf.predict(X_test)
+clf.predict_proba(X_test)
 
 def plot_confusion(clf, X_test, y_test):
 	np.set_printoptions(precision=2)
@@ -78,29 +82,32 @@ score = clf.score(X_test, y_test)
 score
 plot_confusion(clf, X_test, y_test)
 
+
 ##### Lifetime Value ####
 
 # Filter data base
-df1 = df[df['LTV']>0]
+df1 = df[df['Interes de Compra']==1]
 
-df1 = df1[['mail', 'chanel', 'location', 'Facturas Creadas', 'Cotizaciones creadas', 'Contacto Inicial', 'Visitas Blog', 'Reportes Descargados', 'Persona Juridica', 'Solicita Ayuda','LTV']]
-df1.info
+df1 = df1[['Dominio Correo', 'Canal Adquisicion', 'Ubicación', 'Facturas Creadas', 'Cotizaciones creadas', 'Contacto Inicial', 'Visitas Blog', 'Reportes Descargados', 'Persona Juridica', 'Solicita Ayuda','LTV']]
 
-X = df1[['mail', 'chanel', 'location', 'Facturas Creadas', 'Cotizaciones creadas',
-	'Contacto Inicial', 'Visitas Blog', 'Reportes Descargados',
-	'Persona Juridica', 'Solicita Ayuda']]
-y = df1['LTV']
+df1 = pd.get_dummies(df1, columns=['Dominio Correo', 'Canal Adquisicion', 'Ubicación'])
+df1.info()
 
 # Checking correlation between variables
 corrMatrix = df1.corr()
 sn.heatmap(corrMatrix, annot=True)
 plt.show()
 
-np.set_printoptions(suppress=True, formatter={'float_kind':'{:f}'.format})
-
 ## Regression Model
+
+X = df1.drop(columns='LTV')
+X = X.drop(columns='Canal Adquisicion_Canal Tradicional')
+y = df1['LTV']
 reg = LinearRegression().fit(X, y)
 reg.score(X, y)
+
+np.set_printoptions(suppress=True, formatter={'float_kind':'{:f}'.format})
+
 reg.coef_
 reg.intercept_
 cdf = pd.concat([pd.DataFrame(X.columns),pd.DataFrame(np.transpose(reg.coef_))], axis = 1)
@@ -121,14 +128,6 @@ y = df1['lnLTV']
 
 ## Regression Model
 reg = LinearRegression().fit(X, y)
-reg.score(X, y)
-reg.coef_
-reg.intercept_
-cdf = pd.concat([pd.DataFrame(X.columns),pd.DataFrame(np.transpose(reg.coef_))], axis = 1)
-print(cdf)
-
-## SVM Regression Model
-reg = SVR(kernel='linear').fit(X, y)
 reg.score(X, y)
 reg.coef_
 reg.intercept_
