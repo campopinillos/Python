@@ -2,8 +2,8 @@
 """Script to measure discance between points.
 Example of a mean distance between 3 points or coords"""
 
-
 import math
+
 
 def dist(x1, y1, x2, y2):
     """Function to measure discance between points or coords"""
