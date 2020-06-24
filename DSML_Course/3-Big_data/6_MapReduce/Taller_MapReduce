@@ -1,0 +1,47 @@
+
+
+TALLER MAPREDUCE
+
+1. Cuente los restaurantes que están entre las latitudes -75, -74 y las longitudes 40 y 42.
+
+var mapFunction = function() {emit(1, 1);};
+var mapFunction = function() {if(this.address.coord[0]>=-75 && this.address.coord[0]<=-74 && this.address.coord[1]>=40 && this.address.coord[1]<=42){emit(1, 1);};};
+db.restaurantes.mapReduce(mapFunction, reduceFunction, {out: "counts_1"})
+db.counts_1.find()
+
+2. Calcule el promedio de los puntajes(score) agrupados por zipcode. Sugerencia: Tenga en cuenta que antes debe calcular el puntaje promedio por restaurante.
+
+var mapFunction = function(){for(let i=0; i<this.grades.length; i++){}};
+var mapFunction = function(){var sum = 0; for(var i=0; i < this.grades.length; i++){sum += this.grades[i].score;}; var avg = sum / this.grades.length; emit(this.address.zipcode, avg);};
+var reduceFunction = function(key, value){return Array.avg(value);};
+db.restaurantes.mapReduce(mapFunction, reduceFunction, {out: "avg"})
+db.avg.find()
+
+
+3. Liste el restaurante top (de acuerdo a su puntaje promedio) por cada tipo de cuisine.
+
+var mapFunction = function(){var sum = 0; for(var i=0; i < this.grades.length; i++){sum += this.grades[i].score;}; var avg_score = sum / this.grades.length; emit({id_rest: this.restaurant_id, cuisine_type: this. cuisine, name_rest: this.name}, avg_score);};
+var reduceFunction = function(key, value){return Array.sum(value);};
+db.restaurantes.mapReduce(mapFunction, reduceFunction, {out: "avg_score"})
+db.avg_score.aggregate( [ { $sort: { "value": -1 } } , { $group:  { _id: { cuisine: "$_id.cuisine_type"} , best_restaurant : {$first: "$_id.name_rest"}, score: { $first: "$value" } } } ,  { $sort: { "_id.cuisine": 1 } }] )
+
+
+
+
+Otros práctica:
+
+- Esta función realiza el listado de restaurantes por ID.
+
+var mapFunction = function() {emit({id_rest : this.restaurant_id, name_rest: this.name}, 1);};
+var reduceFunction = function(rest_id, count){return Array.sum(count);};
+db.restaurantes.mapReduce(mapFunction, reduceFunction, {out: "counts_2"})
+db.counts_2.find()
+
+- Esta función realiza el conteo de restaurantes por zipcode.
+
+var mapFunction = function(){emit(this.address.zipcode,1);};
+var reduceFunction = function(zip,count){return Array.sum(count);};
+db.restaurantes.mapReduce(mapFunction, reduceFunction, {out: "count_rest_by_zipcode"})
+db.count_rest_by_zipcode.find()
+
+

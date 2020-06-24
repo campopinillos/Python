@@ -1,0 +1,71 @@
+sudo docker pull mongo
+
+docker ps
+
+docker rm $(docker ps -q -f status=exited)                     		(para eliminar cointainer inactivos)
+
+sudo docker run -d -p 30006:27017 -v mongo-data:/data/db --name mongo4 mongo mongod
+
+sudo docker exec -it mongo4 bash
+
+mkdir import-data
+
+cd import-data/
+
+docker cp Downloads/data.json mongo4:/import-data         # (     Este va en otra terminal.    )
+
+mongoimport --db diplomado --collection restaurantes --drop --file data.json
+
+mongo
+
+use diplomado
+
+i. Todos los restaurantes de la base de datos.
+db.restaurantes.find()
+
+ii. Todos los restaurantes: únicamente los campos restaurant_id , name , cuisine .
+db.restaurantes.find({},{restaurant_id: 1, name: 1, "cuisine": 1})
+
+iii. Todos los restaurantes: únicamente los campos restaurant_id , name , zipcode y SIN _id .
+ db.restaurantes.find({},{restaurant_id: 1, name: 1, "address.zipcode": 1, _id: 0})
+
+iv. Restaurantes en el borough “Manhattan”.
+db.restaurantes.find({borough: "Manhattan"})
+
+v. Restaurantes con score mayor que 90. (Sugerencia: utilizar operador $elemMatch )
+db.restaurantes.find({grades: {$elemMatch: {score:{$gt:90}}}})
+
+db.restaurantes.find({"grades.score": {$lt : 90}})
+
+vi. Restaurante con score mayor que 80 y menor que 90.
+db.restaurantes.find({grades: {$elemMatch: {score: {$gt:80}, score: {$lt:90}}}})
+
+db.restaurantes.find({"grades.score": {$gt:80}, "grades.score": {$lt:90}})
+
+vii. Restaurantes ubicados en latitude menor a -95.754168.
+db.restaurantes.find({"address.coord.0": {$lt : -95.754168}})
+
+viii. Restaurantes para los cuales cuisine es diferente de “American”, tiene un grade de “A” y no pertenece al borough “Brooklyn”.
+
+db.restaurantes.find({"cuisine" : {$nin: ["American "]}, "grades.grade" : "A" , "borough" : {$nin: ["Brooklyn"]}})
+
+ix. Restaurantes en los cuales el nombre comienza por la palabra “Wil”. (Hint: usar expresión regular sobre el campo name ).
+db.restaurantes.find( { name: { $in: [ /^Wil/ ] } } )
+
+x. Restaurantes en los cuales la cuisine NO es “American” NI “Chinese” O el name comienza por la palabra “Wil”. (Sugerencia: utilizar los operadores $or y $and ).
+db.restaurantes.find({ $or: [{“cuisine" : {$nin: ["American ", "Chinese”]}, name: { $in: [ /^Wil/ ] }]})
+
+xi. Restaurantes ordenados en ascendentemente por el name .
+db.restaurantes.find({},{name: 1,_id: 0}).sort( { name: 1 } )
+
+xii. Restaurantes para los cuales el address.street existe. (Sugerencia: utilizar operador
+$exists ).
+db.restaurantes.find({"address.street": { $exists: true}},{"name": 1, "address.street": 1 ,_id: 0})
+
+
+
+
+
+
+
+
